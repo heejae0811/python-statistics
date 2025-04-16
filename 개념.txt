@@ -1,0 +1,67 @@
+독립 변수(independent variable): 원인(cause), 연구자가 조작하거나 변화를 줄 수 있는 변수
+ex) 심박수, intervention
+
+종속 변수(dependent variable): 결과(result), 독립 변수의 영향을 받아 변화하는 변수
+ex) 등반 성공률, kinematics
+
+독립 변수는 연구자가 조절하거나 관심을 두는 원인이고, 종속 변수는 그에 따라 변화하는 결과이다.
+축구 선수의 드리블 속도(종속 변수) 향상을 위한 민첩성 훈련(독립 변수)
+
+X(Feature): 드리블 스킬 점수화, 패스 미스, 공을 뻇긴 횟수 등
+Y(Target): 연봉, 다칠 확률, 프로가 될 수 있는 확률
+
+Y에 대한 의미부여가 반드시 있어야 한다. End-user(축구 선수 또는 구단주 등)가 필요로 하는 결과여야 한다.
+
+- Independent t-test
+서로 독립된 두 그룹의 평균 차이 비교
+두 그룹 모두 정규분포 + 등분산
+ttest_ind(equal_var=True)
+Cohen's d
+
+- Welch's t-test
+서로 독립된 두 그룹의 평균 차이 비교
+두 그룹의 정규분포 또는 분산이 다름
+ttest_inde(equal_var=False)
+Cohen's d
+
+- Mann-Whitney U test (비모수 검정)
+서로 독립된 두 그룹의 평균 차이 비교
+한 그룹이라도 비정규분포
+mannwhitneyu() - alternative = 'two-sided': 양측검증, 'less': 단측검정(첫 번째 그룹이 작을 것이다.), 'greater': 단측검정(첫 번쨰 그룹이 클 것이다.)
+Rank-biserial r
+
+- Paired t-test
+같은 대상의 두 조건 비교, 1:1 대응
+두 그룹 모두 정규 분포 + 동일 대상
+ttest_rel()
+Cohen's dz / r
+
+- Anova (분산분석)
+3개 이상 그룹 간 평균 차이 비교
+정규분포 + 등분산
+anova / f_oneway()
+η² (Eta squared) / ω²
+
+- Kruskal–Wallis test
+비모수적 3개 그룹 이상 비교
+비정규분포 + 독립 그룹
+kruskal()
+ε² (epsilon squared)
+
+- Correlation
+두 변수 간의 관계 강도 및 방향 분석
+정규분포: Pearson - pearsonr()
+비정규: Spearman - spearmanr()
+r (상관계수 자체가 효과크기)
+
+- Regression
+한 변수(Y)를 하나 이상의 변수(X)가 예측하는 정도 분석
+정규분포 + 선형성 가정 필요
+OLS / LinearRegression()
+R² (설명력) / f² (local effect size)
+
+- Decision tree
+데이터를 조건(질문)들로 분할해 분류 또는 예측
+비정규분포, 다항분류 등도 OK
+DecisionTreeClassifier, Regressor
+없음 (설명력: accuracy, Gini 등)
