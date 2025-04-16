@@ -36,19 +36,19 @@ for metric in metrics:
                 print(f'Levene’s test | stat: {levene_stat:.5f} | p-value: {levene_p:.5f} | 등분산이다.')
 
                 # Independent t-test
-                t_stat, t_p = ttest_ind(group_data[groups[0]], group_data[groups[1]], equal_var = True)
+                t_stat, t_p = ttest_ind(group_data[groups[0]], group_data[groups[1]], equal_var=True)
                 print(f'\n→ Independent t-test | stat: {t_stat:.5f} | p-value: {t_p:.5f}')
             else:
                 print(f'→ Levene’s test | stat: {levene_stat:.5f} | p-value: {levene_p:.5f} | 등분산이 아니다.')
 
                 # Welch's t-test
-                t_stat, t_p = ttest_ind(group_data[groups[0]], group_data[groups[1]], equal_var = False)
+                t_stat, t_p = ttest_ind(group_data[groups[0]], group_data[groups[1]], equal_var=False)
                 print(f'\n→ Welch’s t-test | stat: {t_stat:.5f} | p-value: {t_p:.5f}')
         else:
             print('정규분포가 아니기 때문에 등분산검정 생략')
 
             # Mann–Whitney U test
-            u_stat, u_p = mannwhitneyu(group_data[groups[0]], group_data[groups[1]], alternative = 'tow-sided')
+            u_stat, u_p = mannwhitneyu(group_data[groups[0]], group_data[groups[1]], alternative='tow-sided')
             print(f'\n→ Mann–Whitney U test | stat: {u_stat:.5f} | p-value: {u_p:.5f}')
     else:
         print('샘플 수 부족')
