@@ -15,26 +15,32 @@ Y에 대한 의미부여가 반드시 있어야 한다. End-user(축구 선수 �
 - Independent t-test
 서로 독립된 두 그룹의 평균 차이 비교
 두 그룹 모두 정규분포 + 등분산
-ttest_ind(equal_var=True)
+ttest_ind(equal_var = True)
 Cohen's d
 
 - Welch's t-test
 서로 독립된 두 그룹의 평균 차이 비교
-두 그룹의 정규분포 또는 분산이 다름
-ttest_inde(equal_var=False)
+두 그룹의 정규분포 + 등분산 X
+ttest_ind(equal_var = False)
 Cohen's d
 
 - Mann-Whitney U test (비모수 검정)
 서로 독립된 두 그룹의 평균 차이 비교
-한 그룹이라도 비정규분포
-mannwhitneyu() - alternative = 'two-sided': 양측검증, 'less': 단측검정(첫 번째 그룹이 작을 것이다.), 'greater': 단측검정(첫 번쨰 그룹이 클 것이다.)
+정규분포 X 하기 때문에 등분산검증도 필요 없음
+mannwhitneyu(): 속성 alternative = 'two-sided' 양측검증, 'less' 단측검정(첫 번째 그룹이 작을 것이다.), 'greater' 단측검정(첫 번쨰 그룹이 클 것이다.)
 Rank-biserial r
 
 - Paired t-test
-같은 대상의 두 조건 비교, 1:1 대응
-두 그룹 모두 정규 분포 + 동일 대상
+같은 두 그룹의 평균 차이 비교 (1:1 대응)
+두 그룹 모두 정규분포, 같은 그룹이기 때문에 등분산검증 필요 없음
 ttest_rel()
-Cohen's dz / r
+Cohen's dz (또는 paired t-test용 r)
+
+- Wilcoxon Signed-Rank Test
+같은 두 그룹의 평균 차이 비교 (1:1 대응)
+정규분포 X
+wilcoxon()
+Cohen's dz
 
 - Anova (분산분석)
 3개 이상 그룹 간 평균 차이 비교
@@ -46,7 +52,7 @@ anova / f_oneway()
 비모수적 3개 그룹 이상 비교
 비정규분포 + 독립 그룹
 kruskal()
-ε² (epsilon squared)
+ε² (Epsilon squared, 비모수 분산분석의 효과크기)
 
 - Correlation
 두 변수 간의 관계 강도 및 방향 분석

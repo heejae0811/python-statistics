@@ -4,22 +4,38 @@ from scipy.stats import shapiro, levene, ttest_ind, mannwhitneyu
 
 # Effect size
 def compute_cohens_d(x, y):
-    nx, ny = len(x), len(y)
+    nx, ny = len(x), len(y) # 그룹 별 샘플 수
     pooled_std = np.sqrt(((nx - 1) * np.var(x, ddof=1) + (ny - 1) * np.var(y, ddof=1)) / (nx + ny - 2))
-    return (np.mean(x) - np.mean(y)) / pooled_std
+    d = (np.mean(x) - np.mean(y)) / pooled_std
 
-def compute_mannwhitney_r(x, y):
-    u_stat, _ = mannwhitneyu(x, y, alternative='two-sided')
-    n1, n2 = len(x), len(y)
+    if abs(d) >= 0.8:
+        interpretation = '큰 효과 (large effect)'
+    elif abs(d) >= 0.5:
+        interpretation = '중간 효과 (medium effect)'
+    elif abs(d) >= 0.2:
+        interpretation = '작은 효과 (small effect)'
+    else:
+        interpretation = '무시할 수 있는 효과 (negligible)'
 
-    # 정규 근사에 기반한 Z 계산
-    mean_U = n1 * n2 / 2
-    std_U = np.sqrt(n1 * n2 * (n1 + n2 + 1) / 12)
-    z = (u_stat - mean_U) / std_U
+    return d, interpretation
 
-    # r 계산 (Rosenthal's r)
-    r = abs(z) / np.sqrt(n1 + n2)
-    return r
+def compute_mannwhitney_r(x, y, stat):
+    nx, ny = len(x), len(y)
+    U_mean = nx * ny / 2
+    U_std = np.sqrt(nx * ny * (nx + ny + 1) / 12)
+    z = (stat - U_mean) / U_std
+    r = abs(z) / np.sqrt(nx + ny)
+
+    if r >= 0.5:
+        interpretation = '큰 효과 (large effect)'
+    elif r >= 0.3:
+        interpretation = '중간 효과 (medium effect)'
+    elif r >= 0.1:
+        interpretation = '작은 효과 (small effect)'
+    else:
+        interpretation = '무시할 수 있는 효과 (negligible)'
+
+    return r, interpretation
 
 df = pd.read_csv('./pelvis_motion_data.csv')
 
@@ -57,24 +73,24 @@ for metric in metrics:
 
                 # Independent t-test
                 t_stat, t_p = ttest_ind(group_data[groups[0]], group_data[groups[1]], equal_var = True)
-                d = compute_cohens_d(group_data[groups[0]], group_data[groups[1]])
+                d, d_interpretation = compute_cohens_d(group_data[groups[0]], group_data[groups[1]])
 
-                print(f'\n→ Independent t-test | stat: {t_stat:.5f} | p-value: {t_p:.5f} | Cohen\'s d: {d:.5f}')
+                print(f'\n→ Independent t-test | stat: {t_stat:.5f} | p-value: {t_p:.5f} | Cohen\'s d: {d:.5f} = {d_interpretation}')
             else:
                 print(f'Levene’s test | stat: {levene_stat:.5f} | p-value: {levene_p:.5f} | 등분산이 아니다.')
 
                 # Welch's t-test
                 t_stat, t_p = ttest_ind(group_data[groups[0]], group_data[groups[1]], equal_var = False)
-                d = compute_cohens_d(group_data[groups[0]], group_data[groups[1]])
+                d, d_interpretation= compute_cohens_d(group_data[groups[0]], group_data[groups[1]])
 
-                print(f'\n→ Welch’s t-test | stat: {t_stat:.5f} | p-value: {t_p:.5f} | Cohen\'s d: {d:.5f}')
+                print(f'\n→ Welch’s t-test | stat: {t_stat:.5f} | p-value: {t_p:.5f} | Cohen\'s d: {d:.5f} = {d_interpretation}')
         else:
             print('정규분포가 아니기 때문에 등분산검정 생략')
 
             # Mann–Whitney U test
             u_stat, u_p = mannwhitneyu(group_data[groups[0]], group_data[groups[1]], alternative = 'two-sided')
-            r = compute_mannwhitney_r(group_data[groups[0]], group_data[groups[1]])
+            r, r_interpretation = compute_mannwhitney_r(group_data[groups[0]], group_data[groups[1]], u_stat)
 
-            print(f'\n→ Mann–Whitney U test | stat: {u_stat:.5f} | p-value: {u_p:.5f} | r: {r:.5f}')
+            print(f'\n→ Mann–Whitney U test | stat: {u_stat:.5f} | p-value: {u_p:.5f} | r: {r:.5f} = {r_interpretation}')
     else:
         print('샘플 수 부족')
