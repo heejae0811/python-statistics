@@ -19,7 +19,9 @@ X = df.drop(['id', 'label'], axis=1)
 y = df['label']
 
 # 학습/테스트 데이터 분할
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
 
 # 하이퍼파라미터 그리드 정의
 param_grid = {
@@ -30,10 +32,8 @@ param_grid = {
     'class_weight': [None, 'balanced']
 }
 
-# 모델 정의
+# 모델 정의 및 GridSearchCV
 dt_classifier = DecisionTreeClassifier(random_state=42)
-
-# GridSearchCV 정의
 grid_search = GridSearchCV(
     estimator=dt_classifier,
     param_grid=param_grid,
@@ -41,11 +41,9 @@ grid_search = GridSearchCV(
     scoring='f1',
     n_jobs=-1
 )
-
-# 학습
 grid_search.fit(X_train, y_train)
 
-# 최적 모델 평가
+# 평가
 y_pred = grid_search.best_estimator_.predict(X_test)
 y_prob = grid_search.best_estimator_.predict_proba(X_test)[:, 1]
 
@@ -66,30 +64,36 @@ print("\nTop 10 parameter combinations by mean_test_score:")
 print(result_df.head(10).to_string(index=False))
 
 # Confusion Matrix 시각화
-conf_matrix = confusion_matrix(y_test, y_pred)
-disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=["Rehab", "Return"])
-disp.plot(cmap='Blues', values_format='d')
+plt.figure(figsize=(4, 3))
+ConfusionMatrixDisplay.from_estimator(
+    estimator=grid_search.best_estimator_,
+    X=X_test,
+    y=y_test,  # <-- 이게 누락되어 있었음
+    display_labels=["Rehab", "Return"],
+    cmap='Blues',
+    values_format='d'
+)
 plt.title('Confusion Matrix')
-plt.xlabel('Predicted Label')
-plt.ylabel('True Label')
 plt.tight_layout()
 plt.show()
 
 # 결정 트리 시각화
-best_tree = grid_search.best_estimator_
 plt.figure(figsize=(30, 10))
-plot_tree(best_tree,
-          feature_names=X.columns,
-          class_names=['Rehab', 'Return'],
-          filled=True,
-          rounded=True,
-          fontsize=10)
+plot_tree(
+    grid_search.best_estimator_,
+    feature_names=X.columns,
+    class_names=['Rehab', 'Return'],
+    filled=True,
+    rounded=True,
+    fontsize=10
+)
 plt.title('Best Decision Tree')
+plt.tight_layout()
 plt.show()
-print("Max Depth of the best tree:", best_tree.get_depth())
+print("Max Depth of the best tree:", grid_search.best_estimator_.get_depth())
 
 # Feature Importance 시각화
-feature_importances = best_tree.feature_importances_
+feature_importances = grid_search.best_estimator_.feature_importances_
 indices = np.argsort(feature_importances)[::-1]
 features = X.columns
 
@@ -103,17 +107,13 @@ plt.tight_layout()
 plt.show()
 
 # ROC Curve 시각화
-from sklearn.metrics import roc_curve, auc
-
 fpr, tpr, thresholds = roc_curve(y_test, y_prob)
 roc_auc = auc(fpr, tpr)
 
-# TPR, FPR 직접 계산한 값 예시 (수동 계산용)
 TP = 58
 FP = 5
 FN = 5
 TN = 102
-
 TPR_recall = TP / (TP + FN)
 FPR_rate = FP / (FP + TN)
 
