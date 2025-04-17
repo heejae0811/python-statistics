@@ -2,7 +2,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('./pelvis_motion_data_fake.csv')
+df = pd.read_csv('data/pelvis_motion_data_fake.csv')
 
 # 제외할 컬럼 지정
 EXCLUDE_COLS = ['id', 'label']

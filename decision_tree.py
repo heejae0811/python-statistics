@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, ConfusionMatrixDisplay
 
-df = pd.read_csv('./pelvis_motion_data_fake.csv')
+df = pd.read_csv('data/pelvis_motion_data_fake.csv')
 X = df.drop(['id', 'label'], axis=1) # 독립변수
 y = df['label'] # 종속변수
 

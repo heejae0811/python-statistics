@@ -37,7 +37,7 @@ def compute_mannwhitney_r(x, y, stat):
 
     return r, interpretation
 
-df = pd.read_csv('./pelvis_motion_data.csv')
+df = pd.read_csv('data/pelvis_motion_data.csv')
 
 group_col = 'label' # 분류할 그룹
 metrics = df.columns.drop(['id', group_col]) # 분석할 변수 외 나머지 제거
