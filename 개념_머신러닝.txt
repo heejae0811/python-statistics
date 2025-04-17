@@ -1,0 +1,52 @@
+[분류 성능 지표 용어 설명]
+
+- Precision 정밀도
+양성 예측 중 실제로 양성인 비율
+TP / (TP + FP)
+
+- Recall 재현율, 민감도
+실제 양성 중 맞춘 비율
+TP / (TP + FN)
+
+- F1-score
+precision과 recall의 조화 평균
+2 * (precision * recall) / (precision + recall)
+
+- Support
+해당 클래스에 실제로 존재하는 샘플 수
+테스트셋에서 클래스 0이 19개 존재
+
+- 클래스 0 (label = 0)
+precision: 1.00 → 예측이 0이라고 한 것 중에 100% 실제로 0이었음
+recall:    1.00 → 실제 0인 것들을 모두 정확히 맞춤
+f1-score:  1.00 → precision과 recall 모두 완벽 → f1도 1.00
+support:   19   → 테스트셋에서 클래스 0이 19개 존재
+
+- 클래스 1 (label = 1)
+precision: 1.00 → 예측이 1이라고 한 것 중에 100% 실제로 1이었음
+recall:    1.00 → 실제 1인 것을 모두 정확히 맞춤
+f1-score:  1.00 → 조화 평균도 완벽
+support:   11   → 테스트셋에서 클래스 1이 11개 존재
+
+[전체 모델 성능]
+accuracy: 전체 데이터 중 100% 정확히 예측 (30개 중 30개 맞춤)
+macro avg: 각 클래스의 precision, recall, f1의 평균 (클래스 수 기준)
+weighted avg: 각 클래스의 precision, recall, f1의 가중 평균 (샘플 수 기준)
+
+[GridSearchCV 튜닝]
+기계가 자동으로 성능 평가해서 선택
+여러 조합을 비교하여 최고 성능 선택
+교차검증(CV) 기반 평균 성능 비교
+최적의 조합 자동 선택, 일반화 능력 높음
+느릴 수 있고, 범위 설정은 사람이 해야 함
+
+predict(): 클래스 / 모든 분류 모델 / 기본 예측
+predict_proba(): 클래스별 확률 / 분류 모델 / ROC, AUC, threshold 조정
+decision_function(): 점수 (마진) / SVM, 로지스틱 회귀 등 / ROC, rank 기반 평가
+predict_log_proba(): log(확률) / 일부 분류 모델 / 로그 손실 계산 등
+
+[그래프 시각화]
+먼저, 결정 트리를 시각화하여 모델이 어떻게 분류를 수행했는지 보여줍니다.
+다음으로, 어떤 변수가 분류에 중요한 영향을 미쳤는지 특성 중요도 그래프로 설명합니다.
+이후, 모델의 전체 분류 성능을 ROC Curve와 AUC로 정량화해 보여줍니다.
+마지막으로 실제 예측 결과인 혼동 행렬을 통해 모델이 맞춘/틀린 것을 정리합니다.

@@ -1,129 +1,126 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import (
-    classification_report,
-    confusion_matrix,
-    ConfusionMatrixDisplay,
-    roc_curve,
-    auc
-)
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc, ConfusionMatrixDisplay
 
-# 데이터 불러오기
 df = pd.read_csv('./pelvis_motion_data_fake.csv')
+X = df.drop(['id', 'label'], axis=1) # 독립변수
+y = df['label'] # 종속변수
 
-# 특성과 레이블 분리
-X = df.drop(['id', 'label'], axis=1)
-y = df['label']
+# 레이블 인코딩 (문자형일 경우 숫자로 변환)
+le = LabelEncoder()
+y = le.fit_transform(y)
 
-# 학습/테스트 데이터 분할
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, stratify=y, random_state=42
-)
+# 1. 학습/테스트 데이터 분할
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
-# 하이퍼파라미터 그리드 정의
+# 2. 기본 결정 트리 모델 정의
 param_grid = {
-    'criterion': ['gini', 'entropy'],
-    'max_depth': [3, 5, 10, None],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4],
-    'class_weight': [None, 'balanced']
+    'criterion': ['gini', 'entropy'],   # 분할 기준
+    'max_depth': [3, 5, 10, None],      # 트리 깊이 제한
+    'min_samples_split': [2, 5, 10],    # 내부 노드 분할 최소 샘플 수
+    'min_samples_leaf': [1, 2, 4],      # 리프 노드 최소 샘플 수
+    'class_weight': [None, 'balanced']  # 클래스 불균형 대응
 }
 
-# 모델 정의 및 GridSearchCV
-dt_classifier = DecisionTreeClassifier(random_state=42)
+# 3. 기본 모델 정의
+dt = DecisionTreeClassifier(random_state=42)
+
+# 4. GridSearchCV 정의
 grid_search = GridSearchCV(
-    estimator=dt_classifier,
+    estimator=dt,
     param_grid=param_grid,
-    cv=5,
-    scoring='f1',
-    n_jobs=-1
+    cv=5,           # 5-fold 교차 검증
+    scoring='f1',   # 성능 기준 (예: f1-score)
+    n_jobs=-1,      # CPU 모두 사용
+    verbose=1       # 학습 상태 출력
 )
+
+# 5. 학습
 grid_search.fit(X_train, y_train)
 
-# 평가
-y_pred = grid_search.best_estimator_.predict(X_test)
-y_prob = grid_search.best_estimator_.predict_proba(X_test)[:, 1]
+# 6. 최적 모델로 예측
+y_pred = grid_search.best_estimator_.predict(X_test)                # 클래스 예측
+y_prob = grid_search.best_estimator_.predict_proba(X_test)[:, 1]    # 확률 예측
 
-print("Best parameters: ", grid_search.best_params_)
-print("Best f1 score (CV 평균): ", round(grid_search.best_score_, 4))
-print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
-print("\nClassification Report:\n", classification_report(y_test, y_pred, digits=4))
+# 7. 성능 출력
+print('Best Parameters:', grid_search.best_params_)
+print('Best f1-score (CV 평균): ', round(grid_search.best_score_, 5))
+print('Confusion Matrix:\n', confusion_matrix(y_test, y_pred))
+print('Classification Report:\n', classification_report(y_test, y_pred, digits=5))
 
-# GridSearchCV 결과 요약
+# 8. GridSearchCV 결과 요약
 cv_results = pd.DataFrame(grid_search.cv_results_)
-result_df = cv_results[[
+
+summary_df = cv_results[[
     'mean_test_score', 'std_test_score', 'rank_test_score',
     'param_criterion', 'param_max_depth',
     'param_min_samples_split', 'param_min_samples_leaf',
     'param_class_weight'
 ]].sort_values(by='mean_test_score', ascending=False)
-print("\nTop 10 parameter combinations by mean_test_score:")
-print(result_df.head(10).to_string(index=False))
 
-# Confusion Matrix 시각화
-plt.figure(figsize=(4, 3))
-ConfusionMatrixDisplay.from_estimator(
-    estimator=grid_search.best_estimator_,
-    X=X_test,
-    y=y_test,  # <-- 이게 누락되어 있었음
-    display_labels=["Rehab", "Return"],
-    cmap='Blues',
-    values_format='d'
-)
-plt.title('Confusion Matrix')
-plt.tight_layout()
-plt.show()
+print('Top 10 parameter combinations by mean_test_score:')
+print(summary_df.head(10).to_string(index=False))
 
-# 결정 트리 시각화
-plt.figure(figsize=(30, 10))
+# 그래프 시각화 1. Decision tree 결정 트리
+plt.figure(figsize=(4, 4))
 plot_tree(
-    grid_search.best_estimator_,
-    feature_names=X.columns,
-    class_names=['Rehab', 'Return'],
-    filled=True,
-    rounded=True,
-    fontsize=10
+    grid_search.best_estimator_,    # 최적 모델
+    feature_names=X.columns,        # 특성 이름
+    class_names=['0', '1'],         # 클래스 이름
+    filled=True,                    # 색 채우기
+    rounded=True                    # 모서리 둥글게
 )
 plt.title('Best Decision Tree')
 plt.tight_layout()
 plt.show()
-print("Max Depth of the best tree:", grid_search.best_estimator_.get_depth())
 
-# Feature Importance 시각화
-feature_importances = grid_search.best_estimator_.feature_importances_
-indices = np.argsort(feature_importances)[::-1]
-features = X.columns
+# 그래프 시각화 2. Feature importance 특성 중요도
+importances = grid_search.best_estimator_.feature_importances_
+indices = np.argsort(importances)[::-1]  # 중요도 높은 순서로 정렬
 
 plt.figure(figsize=(10, 6))
-plt.title("Feature Importance")
-plt.barh(range(X.shape[1]), feature_importances[indices], align="center")
-plt.yticks(range(X.shape[1]), features[indices])
-plt.xlabel('Importance Score')
-plt.ylabel('Features')
+plt.title('Feature Importance')
+plt.bar(range(X.shape[1]), importances[indices])
+plt.xticks(range(X.shape[1]), X.columns[indices], rotation=45)
+plt.ylabel('Importance Score')
 plt.tight_layout()
 plt.show()
 
-# ROC Curve 시각화
-fpr, tpr, thresholds = roc_curve(y_test, y_prob)
-roc_auc = auc(fpr, tpr)
+importance_df = pd.DataFrame({
+    'Feature': X.columns,
+    'Importance': importances
+}).sort_values(by='Importance', ascending=False)
 
-TP = 58
-FP = 5
-FN = 5
-TN = 102
-TPR_recall = TP / (TP + FN)
-FPR_rate = FP / (FP + TN)
+print(importance_df.head(10))
 
-plt.figure(figsize=(5, 4))
-plt.plot(fpr, tpr, color='blue', lw=1, label=f'ROC curve (AUC = {roc_auc:.2f})')
-plt.scatter(FPR_rate, TPR_recall, color='red', label=f'TPR={TPR_recall:.2f}, FPR={FPR_rate:.2f}')
-plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+# 그래프 시각화 3. ROC Curve
+fpr, tpr, thresholds = roc_curve(y_test, y_prob)  # y_prob는 predict_proba()[:, 1]
+roc_auc = auc(fpr, tpr)  # 면적 계산
+
+plt.figure(figsize=(6, 5))
+plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC Curve (AUC = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], color='gray', linestyle='--')  # 랜덤선 기준선
 plt.xlabel('False Positive Rate')
 plt.ylabel('True Positive Rate')
-plt.title('ROC Curve with Manual TPR/FPR')
-plt.legend(loc="lower right")
+plt.title('ROC Curve')
+plt.legend(loc='lower right')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 그래프 시각화 4. Confusion Matrix 혼동 행렬
+ConfusionMatrixDisplay.from_estimator(
+    grid_search.best_estimator_,
+    X_test,
+    y_test,
+    display_labels=['Class 0', 'Class 1'],
+    cmap='Blues',
+    values_format='d'
+)
+plt.title('Confusion Matrix')
 plt.tight_layout()
 plt.show()
