@@ -1,7 +1,7 @@
 import pandas as pd
 from scipy.stats import shapiro, levene, ttest_ind, mannwhitneyu
 
-df = pd.read_csv('data/pelvis_motion_data.csv')
+df = pd.read_csv('data/pelvis_motion_data_random.csv')
 
 group_col = 'label' # 분류할 그룹
 metrics = df.columns.drop(['id', group_col]) # 분석할 변수 외 나머지 제거
@@ -48,7 +48,7 @@ for metric in metrics:
             print('정규분포가 아니기 때문에 등분산검정 생략')
 
             # Mann–Whitney U test
-            u_stat, u_p = mannwhitneyu(group_data[groups[0]], group_data[groups[1]], alternative='tow-sided')
+            u_stat, u_p = mannwhitneyu(group_data[groups[0]], group_data[groups[1]], alternative='two-sided')
             print(f'\n→ Mann–Whitney U test | stat: {u_stat:.5f} | p-value: {u_p:.5f}')
     else:
         print('샘플 수 부족')

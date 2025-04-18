@@ -80,7 +80,7 @@ plt.show()
 
 # 그래프 시각화 2. Feature importance 특성 중요도
 importances = grid_search.best_estimator_.feature_importances_
-indices = np.argsort(importances)[::-1]  # 중요도 높은 순서로 정렬
+indices = np.argsort(importances)[::-1] # 중요도 높은 순서로 정렬
 
 plt.figure(figsize=(10, 6))
 plt.title('Feature Importance')
