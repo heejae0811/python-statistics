@@ -50,3 +50,19 @@ predict_log_proba(): log(확률) / 일부 분류 모델 / 로그 손실 계산 �
 다음으로, 어떤 변수가 분류에 중요한 영향을 미쳤는지 특성 중요도 그래프로 설명합니다.
 이후, 모델의 전체 분류 성능을 ROC Curve와 AUC로 정량화해 보여줍니다.
 마지막으로 실제 예측 결과인 혼동 행렬을 통해 모델이 맞춘/틀린 것을 정리합니다.
+
+[ROC Curve (Receiver Operating Characteristic Curve)]
+이진 분류 모델의 성능을 평가하는 그래프
+
+x축: False Positive Rate (FPR) – 실제는 Negative인데 Positive로 예측한 비율
+y축: True Positive Rate (TPR) – 실제 Positive를 정확히 예측한 비율 (재현율, Recall)
+
+[AUC (Area Under Curve)]
+ROC 곡선 아래의 면적 값 (0~1 사이)
+
+1.0: 완벽한 분류기
+0.5: 랜덤 분류기 (동전 던지기 수준)
+0.54: 이 모델은 조금 나은 수준의 랜덤 예측 정도에 해당함
+
+ROC 커브가 대각선에 가까움 → 모델이 좋은 기준으로 구분하지 못함
+AUC = 0.54 → 모델이 거의 무작위로 예측하고 있음 이 경우, 모델 성능을 개선하거나 feature engineering이 필요
