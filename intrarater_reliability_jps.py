@@ -1,44 +1,37 @@
 import pandas as pd
 import pingouin as pg
 
-# 1. 데이터 불러오기
+# 1. CSV 불러오기
 df = pd.read_csv('./data/reliability/data_measurement_jps.csv')
 
-# 2. 열 이름 정리 (필요한 경우만)
-df.columns = df.columns.str.strip()  # 공백 제거
-df.rename(columns={
-    'JPS IV Mean 1': 'IV_1',
-    'JPS IV Mean 2': 'IV_2',
-    'JPS PF Mean 1': 'PF_1',
-    'JPS PF Mean 2': 'PF_2'
-}, inplace=True)
+# 2. JPS IV: 1차/2차 평균값 만들기
+df['JPS_IV_1st'] = df[['JPS IV - 1', 'JPS IV - 2', 'JPS IV - 3']].mean(axis=1)
+df['JPS_IV_2nd'] = df[['JPS IV - 1.1', 'JPS IV - 2.1', 'JPS IV - 3.1']].mean(axis=1)
 
-# 3. 분석할 항목
-metrics = {
-    'JPS_IV': ['IV_1', 'IV_2'],
-    'JPS_PF': ['PF_1', 'PF_2']
-}
+# 3. JPS PF: 1차/2차 평균값 만들기
+df['JPS_PF_1st'] = df[['JPS PF - 1', 'JPS PF - 2', 'JPS PF - 3']].mean(axis=1)
+df['JPS_PF_2nd'] = df[['JPS PF - 1.1', 'JPS PF - 2.1', 'JPS PF - 3.1']].mean(axis=1)
 
-# 4. ICC 결과 저장
-results = []
-
-for name, (col1, col2) in metrics.items():
-    temp = df[['Unnamed: 0', col1, col2]].copy()
-    temp_long = pd.melt(temp, id_vars='Unnamed: 0', value_vars=[col1, col2], var_name='Rater', value_name='Score')
-
-    icc = pg.intraclass_corr(data=temp_long, targets='Unnamed: 0', raters='Rater', ratings='Score')
-
-    icc3 = icc[icc['Type'] == 'ICC3'].iloc[0]
-    icc3k = icc[icc['Type'] == 'ICC3k'].iloc[0]
-
-    results.append({
-        'List': name,
-        'ICC(3,1)': round(icc3['ICC'], 3),
-        'ICC(3,k)': round(icc3k['ICC'], 3),
-        '95% CI(3,1)': icc3['CI95%'],
-        '95% CI(3,k)': icc3k['CI95%']
+# 4. Long-format 변환 함수
+def make_long_format(data, col1, col2, name='Name'):
+    df_long = pd.DataFrame({
+        name: data['Unnamed: 0'].tolist() * 2,
+        'Rater': [col1] * len(data) + [col2] * len(data),
+        'Score': data[col1].tolist() + data[col2].tolist()
     })
+    return df_long
 
-# 5. 결과 출력
-icc_df = pd.DataFrame(results)
-print(icc_df)
+# 5. ICC 계산 함수
+def calculate_icc(df_long, label):
+    icc = pg.intraclass_corr(data=df_long, targets='Name', raters='Rater', ratings='Score')
+    result = icc[icc['Type'].isin(['ICC3', 'ICC3k'])]
+    print(f"\nICC 결과 - {label}")
+    print(result[['Type', 'ICC', 'CI95%']])
+    return result
+
+# 6. ICC 계산 실행
+df_iv_long = make_long_format(df, 'JPS_IV_1st', 'JPS_IV_2nd')
+df_pf_long = make_long_format(df, 'JPS_PF_1st', 'JPS_PF_2nd')
+
+icc_iv = calculate_icc(df_iv_long, 'JPS IV')
+icc_pf = calculate_icc(df_pf_long, 'JPS PF')

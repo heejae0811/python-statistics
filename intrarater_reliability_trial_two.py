@@ -2,7 +2,7 @@ import pandas as pd
 import pingouin as pg
 
 # CSV 파일 불러오기
-df = pd.read_csv('./data/reliability/data_measurement_filament.csv')
+df = pd.read_csv('./data/reliability/data_measurement_swm.csv')
 
 # 열 이름 정리
 df.columns = ['Name', 'Trial1', 'Trial2']
