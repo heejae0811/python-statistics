@@ -75,5 +75,17 @@ ROC 곡선 아래의 면적 값 (0~1 사이)
 0.5: 랜덤 분류기 (동전 던지기 수준)
 0.54: 이 모델은 조금 나은 수준의 랜덤 예측 정도에 해당함
 
+가로축 False positive: 음성을 음성이라고 판단한 것
+세로축 True positive: 양성을 양성이라고 판단한 것 (자페이면 자페다.)
+
 ROC 커브가 대각선에 가까움 → 모델이 좋은 기준으로 구분하지 못함
 AUC = 0.54 → 모델이 거의 무작위로 예측하고 있음 이 경우, 모델 성능을 개선하거나 feature engineering이 필요
+
+데이터 과적합 확인
+1. Decision Tree Learning Curve
+2. KNN Learning Curve
+3. Random forest
+
+1개의 fold에 15-20개
+
+correlation으로 feature 선정
